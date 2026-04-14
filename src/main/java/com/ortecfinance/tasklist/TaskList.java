@@ -109,6 +109,9 @@ public final class TaskList implements Runnable {
             case "deadline":
                 deadline(commandRest[1]);
                 break;
+            case "view-by-deadline":
+                viewByDeadline();
+                break;
             case "today":
                 today();
                 break;
@@ -234,6 +237,7 @@ public final class TaskList implements Runnable {
         out.println("  check <task ID>");
         out.println("  uncheck <task ID>");
         out.println("  deadline <task ID> <date>");
+        out.println("  view-by-deadline");
         out.println("  today");
         out.println();
     }
@@ -258,6 +262,32 @@ public final class TaskList implements Runnable {
         } catch (TaskNotFoundException e) {
             out.printf("Could not find a task with an ID of %d.", e.getTaskId());
             out.println();
+        }
+    }
+
+    /**
+     * Handles the 'view by deadline' command.
+     * Displays all tasks in the application grouped chronologically by their assigned deadlines.
+     * <p>
+     * Uses the DeadlineGroup view model to easily distinguish between tasks
+     * that have specific due dates and tasks that have no deadline assigned.
+     */
+    private void viewByDeadline() {
+        for (DeadlineGroup group : service.getTasksGroupedByDeadline()) {
+            // Print the group header (either the formatted date or the fallback text)
+            if (group.isNoDeadlineGroup()) {
+                out.println("No deadline:");
+            } else {
+                out.printf("%s:%n", group.getDeadline().format(DATE_FORMATTER));
+            }
+
+            // Iterate through the projects in the deadline group and print the tasks
+            for (Project project : group.getProjects()) {
+                out.printf("    %s:%n", project.getName());
+                for (Task task : project.getTasks()) {
+                    out.printf("        %d: %s%n", task.getId(), task.getDescription());
+                }
+            }
         }
     }
 

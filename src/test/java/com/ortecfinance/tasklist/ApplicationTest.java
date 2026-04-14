@@ -110,6 +110,7 @@ public final class ApplicationTest {
                 "  check <task ID>",
                 "  uncheck <task ID>",
                 "  deadline <task ID> <date>",
+                "  view-by-deadline",
                 "  today",
                 ""
         );

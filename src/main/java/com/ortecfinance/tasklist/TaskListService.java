@@ -170,6 +170,72 @@ public final class TaskListService {
     }
 
     /**
+     * Reorganizes the entire task list into a chronological view grouped by deadline.
+     * Instead of the standard hierarchy (Project -> Tasks), this builds an inverted
+     * view model (Deadline -> Projects -> Tasks). It safely creates copies of the
+     * projects and tasks so that the underlying domain state is not accidentally
+     * modified by the UI rendering logic.
+     *
+     * @return a chronologically sorted list of deadline groups, with the
+     * "no deadline" group appended at the very end.
+     */
+    public List<DeadlineGroup> getTasksGroupedByDeadline() {
+        // TreeMap automatically sorts the groups by LocalDate chronologically
+        java.util.Map<LocalDate, List<Project>> datedGroups = new java.util.TreeMap<>();
+        List<Project> noDeadlineProjects = new java.util.ArrayList<>();
+
+        for (Project sourceProject : projects.values()) {
+            java.util.Map<LocalDate, Project> projectCopiesByDate = new java.util.LinkedHashMap<>();
+            Project noDeadlineProject = new Project(sourceProject.getName());
+
+            for (Task task : sourceProject.getTasks()) {
+                if (task.getDeadline() == null) {
+                    // Create a safe copy for tasks without a deadline
+                    Task copiedTask = noDeadlineProject.addTask(task.getId(), task.getDescription());
+                    copiedTask.setDone(task.isDone());
+                    copiedTask.setDeadline(null);
+                } else {
+                    // Find or create a project bucket for this specific date
+                    Project projectForDate = projectCopiesByDate.computeIfAbsent(
+                            task.getDeadline(),
+                            ignored -> new Project(sourceProject.getName())
+                    );
+
+                    // Create a safe copy for tasks with a deadline
+                    Task copiedTask = projectForDate.addTask(task.getId(), task.getDescription());
+                    copiedTask.setDone(task.isDone());
+                    copiedTask.setDeadline(task.getDeadline());
+                }
+            }
+
+            // Aggregate the daily project views into the master map
+            for (Map.Entry<LocalDate, Project> entry : projectCopiesByDate.entrySet()) {
+                datedGroups.computeIfAbsent(entry.getKey(), ignored -> new java.util.ArrayList<>())
+                        .add(entry.getValue());
+            }
+
+            // Add the no-deadline project view if it contains any tasks
+            if (!noDeadlineProject.getTasks().isEmpty()) {
+                noDeadlineProjects.add(noDeadlineProject);
+            }
+        }
+
+        // Convert the maps into the final List of View Models for the UI
+        List<DeadlineGroup> result = new java.util.ArrayList<>();
+
+        for (Map.Entry<LocalDate, List<Project>> entry : datedGroups.entrySet()) {
+            result.add(new DeadlineGroup(entry.getKey(), entry.getValue()));
+        }
+
+        // Always put the tasks without deadlines at the very bottom of the view
+        if (!noDeadlineProjects.isEmpty()) {
+            result.add(new DeadlineGroup(null, noDeadlineProjects));
+        }
+
+        return result;
+    }
+
+    /**
      * Generates the next sequential ID for a new task.
      *
      * @return the new ID
