@@ -94,6 +94,73 @@ public final class ApplicationTest {
         execute("quit");
     }
 
+    /**
+     * Verifies that the 'help' command correctly displays the full list
+     * of available commands to the user.
+     */
+    @Test
+    void it_shows_help() throws IOException {
+        execute("help");
+
+        readLines(
+                "Commands:",
+                "  show",
+                "  add project <project name>",
+                "  add task <project name> <task description>",
+                "  check <task ID>",
+                "  uncheck <task ID>",
+                ""
+        );
+
+        execute("quit");
+    }
+
+    /**
+     * Ensures that the application handles unrecognized user input
+     * by printing a helpful error message instead of crashing.
+     */
+    @Test
+    void it_shows_error_for_unknown_command() throws IOException {
+        execute("unknown-command");
+
+        readLines(
+                "I don't know what the command \"unknown-command\" is."
+        );
+
+        execute("quit");
+    }
+
+    /**
+     * Ensures that the application handles the case of adding a task
+     * to a project that has not been created yet by printing a helpful
+     * error message.
+     */
+    @Test
+    void it_shows_error_when_adding_task_to_missing_project() throws IOException {
+        execute("add task missing Eat more donuts.");
+
+        readLines(
+                "Could not find a project with the name \"missing\"."
+        );
+
+        execute("quit");
+    }
+
+    /**
+     * Ensures that the application handles the case of modifying a task
+     * with an ID that does not exist by printing a helpful error message.
+     */
+    @Test
+    void it_shows_an_error_when_checking_a_missing_task() throws IOException {
+        execute("check 42");
+
+        readLines(
+                "Could not find a task with an ID of 42."
+        );
+
+        execute("quit");
+    }
+
     private void execute(String command) throws IOException {
         read(PROMPT);
         write(command);
