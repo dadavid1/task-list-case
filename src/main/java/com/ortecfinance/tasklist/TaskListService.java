@@ -3,13 +3,32 @@ package com.ortecfinance.tasklist;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.time.Clock;
+import java.time.LocalDate;
 
 /**
  * The core service that manages all projects and tasks.
  */
 public final class TaskListService {
     private final Map<String, Project> projects = new LinkedHashMap<>();
+    private final Clock clock;
     private long lastId = 0;
+
+    /**
+     * Constructs a new TaskListService using the system's default time zone.
+     */
+    public TaskListService() {
+        this(Clock.systemDefaultZone());
+    }
+
+    /**
+     * Constructs a new TaskListService with a specific clock, useful for testing.
+     *
+     * @param clock the clock to use for date/time operations
+     */
+    public TaskListService(Clock clock) {
+        this.clock = clock;
+    }
 
     /**
      * Gets a lsit of all existing projects.
@@ -65,6 +84,38 @@ public final class TaskListService {
     }
 
     /**
+     * Sets a deadline for a specific task.
+     *
+     * @param taskId the ID of the task
+     * @param deadline the date by which the task should be completed
+     * @throws TaskNotFoundException if the task ID does not exist
+     */
+    public void setDeadline(long taskId, LocalDate deadline) {
+        Task task = findTaskById(taskId);
+        if (task == null) {
+            throw new TaskNotFoundException(taskId);
+        }
+
+        task.setDeadline(deadline);
+    }
+
+    /**
+     * Retrieves a list of projects containing only the tasks that are due today.
+     * Empty projects are filtered out.
+     *
+     * @return a list of projects with tasks due today
+     */
+    public List<Project> getProjectsWithTasksDueToday() {
+        LocalDate today = LocalDate.now(clock);
+
+        return projects.values().stream()
+                .map(project -> copyProjectWithMatchingTasks(project,
+                        task -> today.equals(task.getDeadline())))
+                .filter(project -> !project.getTasks().isEmpty())
+                .toList();
+    }
+
+    /**
      * Helper method to update the completion status of a task.
      *
      * @param taskId the ID of the task
@@ -95,6 +146,27 @@ public final class TaskListService {
             }
         }
         return null;
+    }
+
+    /**
+     * Creates a copy of a project containing only tasks that match a specific condition.
+     *
+     * @param source the original project to copy from
+     * @param predicate the condition that tasks must meet to be included
+     * @return a new project instance containing the filtered tasks
+     */
+    private Project copyProjectWithMatchingTasks(Project source, java.util.function.Predicate<Task> predicate) {
+        Project project = new Project(source.getName());
+
+        for (Task task : source.getTasks()) {
+            if (predicate.test(task)) {
+                Task copiedTask = project.addTask(task.getId(), task.getDescription());
+                copiedTask.setDone(task.isDone());
+                copiedTask.setDeadline(task.getDeadline());
+            }
+        }
+
+        return project;
     }
 
     /**

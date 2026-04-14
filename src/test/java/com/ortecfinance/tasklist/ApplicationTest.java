@@ -109,6 +109,8 @@ public final class ApplicationTest {
                 "  add task <project name> <task description>",
                 "  check <task ID>",
                 "  uncheck <task ID>",
+                "  deadline <task ID> <date>",
+                "  today",
                 ""
         );
 

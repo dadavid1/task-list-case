@@ -4,6 +4,9 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 
 /**
  * The console-based user interface for the application.
@@ -17,6 +20,11 @@ public final class TaskList implements Runnable {
     private final PrintWriter out;
 
     private final TaskListService service;
+
+    /**
+     * Date formatter used to parse deadlines.
+     */
+    private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("dd-MM-yyyy");
 
     /**
      * Starts the application in console mode using standard system streams.
@@ -98,6 +106,12 @@ public final class TaskList implements Runnable {
             case "help":
                 help();
                 break;
+            case "deadline":
+                deadline(commandRest[1]);
+                break;
+            case "today":
+                today();
+                break;
             default:
                 error(command);
                 break;
@@ -108,10 +122,24 @@ public final class TaskList implements Runnable {
      * Retrieves all projects and tasks from the service and prints them to the console.
      */
     private void show() {
-        for (Project project : service.getProjects()) {
+        showProjects(service.getProjects());
+    }
+
+    /**
+     * A reusable helper method that formats and prints a specific list of projects to the console.
+     * By accepting a list parameter, this method can render both the full project list
+     * and filtered views (such as tasks due today).
+     *
+     * @param projects the list of projects to display
+     */
+    private void showProjects(java.util.List<Project> projects) {
+        for (Project project : projects) {
             out.println(project.getName());
             for (Task task : project.getTasks()) {
-                out.printf("    [%c] %d: %s%n", (task.isDone() ? 'x' : ' '), task.getId(), task.getDescription());
+                out.printf("    [%c] %d: %s%n",
+                        task.isDone() ? 'x' : ' ',
+                        task.getId(),
+                        task.getDescription());
             }
             out.println();
         }
@@ -205,7 +233,40 @@ public final class TaskList implements Runnable {
         out.println("  add task <project name> <task description>");
         out.println("  check <task ID>");
         out.println("  uncheck <task ID>");
+        out.println("  deadline <task ID> <date>");
+        out.println("  today");
         out.println();
+    }
+
+    /**
+     * Parses the 'deadline' command to assign a due date to a specific task.
+     * Expects the input string to contain a task ID and a date formatted as dd-MM-yyyy.
+     * Hnadles invalid date formats and non-existent task IDs.
+     *
+     * @param commandLine the remaining part of the command containing the ID and date
+     */
+    private void deadline(String commandLine) {
+        String[] parts = commandLine.split(" ", 2);
+        long taskId = Long.parseLong(parts[0]);
+
+        try {
+            LocalDate deadline = LocalDate.parse(parts[1], DATE_FORMATTER);
+            service.setDeadline(taskId, deadline);
+        } catch (DateTimeParseException e) {
+            out.printf("Invalid date \"%s\". Please use format dd-MM-yyyy.", parts[1]);
+            out.println();
+        } catch (TaskNotFoundException e) {
+            out.printf("Could not find a task with an ID of %d.", e.getTaskId());
+            out.println();
+        }
+    }
+
+    /**
+     * Retrieves and displays all projects containing tasks that are due exactly today.
+     * Relies on the underlying service to handle the time-based filtering logic.
+     */
+    private void today() {
+        showProjects(service.getProjectsWithTasksDueToday());
     }
 
     /**

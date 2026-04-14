@@ -126,4 +126,58 @@ public final class TaskListServiceTest {
         assertThrows(UnsupportedOperationException.class,
                 () -> project.getTasks().add(new Task(99, "Injected task", false)));
     }
+
+    /**
+     * Verifies that a task can be successfully updated with a deadline.
+     * Also checks that newly created tasks default to having no
+     * deadline.
+     */
+    @Test
+    void it_can_set_a_deadline_for_a_task() {
+        TaskListService service = new TaskListService();
+
+        service.addProject("training");
+        service.addTask("training", "SOLID");
+
+        Task task = service.getProjects().getFirst().getTasks().getFirst();
+        assertNull(task.getDeadline());
+
+        service.setDeadline(task.getId(), java.time.LocalDate.of(2024, 11, 25));
+
+        assertEquals(java.time.LocalDate.of(2024, 11, 25), task.getDeadline());
+    }
+
+    /**
+     * Verifies the logic for filtering tasks that are specifically due today.
+     * By injecting a fixed Clock, this test ensures the time-based filtering
+     * is completely deterministic and will always pass regardless of the actual
+     * date the test suite is executed on.
+     */
+    @Test
+    void it_returns_only_tasks_due_today() {
+        java.time.Clock fixedClock = java.time.Clock.fixed(
+                java.time.Instant.parse("2024-11-25T10:15:30.00Z"),
+                java.time.ZoneId.of("UTC")
+        );
+
+        // Injecting the mocked clock into the service
+        TaskListService service = new TaskListService(fixedClock);
+
+        service.addProject("secrets");
+        service.addTask("secrets", "Eat more donuts.");
+        service.addTask("secrets", "Destroy all humans.");
+
+        service.addProject("training");
+        service.addTask("training", "SOLID");
+
+        service.setDeadline(1, java.time.LocalDate.of(2024, 11, 25)); // Due "today"
+        service.setDeadline(3, java.time.LocalDate.of(2024, 11, 26)); // Due "tomorrow"
+
+        List<Project> projectsDueToday = service.getProjectsWithTasksDueToday();
+
+        assertEquals(1, projectsDueToday.size());
+        assertEquals("secrets", projectsDueToday.getFirst().getName());
+        assertEquals(1, projectsDueToday.getFirst().getTasks().size());
+        assertEquals("Eat more donuts.", projectsDueToday.getFirst().getTasks().getFirst().getDescription());
+    }
 }
