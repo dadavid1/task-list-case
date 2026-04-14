@@ -145,7 +145,7 @@ public final class TaskList implements Runnable {
     /**
      * Adds a new task to an existing project.
      *
-     * @param project     the target project name
+     * @param project the target project name
      * @param description what the task is about
      */
     private void addTask(String project, String description) {
@@ -179,10 +179,10 @@ public final class TaskList implements Runnable {
      * Helper method to parse a task ID and update its completion status.
      *
      * @param idString the ID of the task as a string
-     * @param done     true to check, false to uncheck
+     * @param done true to check, false to uncheck
      */
     private void setDone(String idString, boolean done) {
-        int id = Integer.parseInt(idString);
+        long id = Long.parseLong(idString);
         try {
             if (done) {
                 service.checkTask(id);
