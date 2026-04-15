@@ -324,6 +324,96 @@ public final class ApplicationTest {
         execute("quit");
     }
 
+    /**
+     * Ensures that typing just 'deadline' without any arguments
+     * shows the correct usage instructions.
+     */
+    @Test
+    void it_shows_usage_when_deadline_has_no_arguments() throws IOException {
+        execute("deadline");
+
+        readLines(
+                "Please don't forget the correct usage: deadline <task ID> <date>"
+        );
+
+        execute("quit");
+    }
+
+    /**
+     * Verifies the app reminds the user to include the date if they
+     * only type the command and the task ID.
+     */
+    @Test
+    void it_shows_usage_when_deadline_has_missing_date() throws IOException {
+        execute("deadline 1");
+
+        readLines(
+                "Please don't forget the correct usage: deadline <task ID> <date>"
+        );
+
+        execute("quit");
+    }
+
+    /**
+     * Checks that providing letters instead of a number for the task ID
+     * triggers a helpful error message.
+     */
+    @Test
+    void it_shows_an_error_when_deadline_id_is_not_numeric() throws IOException {
+        execute("deadline abc 25-11-2024");
+
+        readLines(
+                "Invalid task ID \"abc\". Please provide a numeric ID."
+        );
+
+        execute("quit");
+    }
+
+    /**
+     * Ensures the app catches dates in the wrong format (like yyyy-MM-dd)
+     * and reminds the user to use the dd-MM-yyyy format.
+     */
+    @Test
+    void it_shows_an_error_when_deadline_date_has_invalid_format() throws IOException {
+        execute("deadline 1 2024-11-25");
+
+        readLines(
+                "Invalid date \"2024-11-25\". Please use format dd-MM-yyyy."
+        );
+
+        execute("quit");
+    }
+
+    /**
+     * Verifies the app rejects the command if the user accidentally
+     * types extra words after the date.
+     */
+    @Test
+    void it_shows_usage_when_deadline_has_too_many_arguments() throws IOException {
+        execute("deadline 1 25-11-2024 extra");
+
+        readLines(
+                "Please don't forget the correct usage: deadline <task ID> <date>"
+        );
+
+        execute("quit");
+    }
+
+    /**
+     * Ensures a friendly error is shown if the input is perfectly formatted,
+     * but the task ID doesn't actually exist in the system.
+     */
+    @Test
+    void it_shows_an_error_when_setting_deadline_for_a_missing_task() throws IOException {
+        execute("deadline 42 25-11-2024");
+
+        readLines(
+                "Could not find a task with an ID of 42."
+        );
+
+        execute("quit");
+    }
+
     private void execute(String command) throws IOException {
         read(PROMPT);
         write(command);

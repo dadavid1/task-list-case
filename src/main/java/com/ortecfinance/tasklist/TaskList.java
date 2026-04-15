@@ -111,7 +111,7 @@ public final class TaskList implements Runnable {
                 help();
                 break;
             case "deadline":
-                deadline(commandRest[1]);
+                deadline(commandRest.length < 2 ? "" : commandRest[1]);
                 break;
             case "view-by-deadline":
                 viewByDeadline();
@@ -288,23 +288,34 @@ public final class TaskList implements Runnable {
     /**
      * Parses the 'deadline' command to assign a due date to a specific task.
      * Expects the input string to contain a task ID and a date formatted as dd-MM-yyyy.
-     * Hnadles invalid date formats and non-existent task IDs.
+     * Hnadles missing or incomplete arguments, non-numeric task IDs, invalid date formats,
+     * and non-existent task IDs.
      *
      * @param commandLine the remaining part of the command containing the ID and date
      */
     private void deadline(String commandLine) {
-        String[] parts = commandLine.split(" ", 2);
-        long taskId = Long.parseLong(parts[0]);
+        String[] parts = commandLine.split(" ", 3);
+
+        if (commandLine.isBlank() || parts.length != 2) {
+            out.println("Please don't forget the correct usage: deadline <task ID> <date>");
+            return;
+        }
+
+        long taskId;
+        try {
+            taskId = Long.parseLong(parts[0]);
+        } catch (NumberFormatException e) {
+            out.printf("Invalid task ID \"%s\". Please provide a numeric ID.%n", parts[0]);
+            return;
+        }
 
         try {
             LocalDate deadline = LocalDate.parse(parts[1], DATE_FORMATTER);
             service.setDeadline(taskId, deadline);
         } catch (DateTimeParseException e) {
-            out.printf("Invalid date \"%s\". Please use format dd-MM-yyyy.", parts[1]);
-            out.println();
+            out.printf("Invalid date \"%s\". Please use format dd-MM-yyyy.%n", parts[1]);
         } catch (TaskNotFoundException e) {
-            out.printf("Could not find a task with an ID of %d.", e.getTaskId());
-            out.println();
+            out.printf("Could not find a task with an ID of %d.%n", e.getTaskId());
         }
     }
 
