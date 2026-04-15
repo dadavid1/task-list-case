@@ -164,6 +164,76 @@ public final class ApplicationTest {
         execute("quit");
     }
 
+    /**
+     * Ensures that typing just 'add' without any additional arguments
+     * prompts the user with the general usage guide for the add command.
+     */
+    @Test
+    void it_shows_usage_when_add_has_no_arguments() throws IOException {
+        execute("add");
+
+        readLines(
+                "I don't understand that. Don't forget the correct usage of add:",
+                "1st usage: add project <project name>",
+                "2nd usage: add task <project name> <task description>"
+        );
+
+        execute("quit");
+    }
+
+    /**
+     * Verifies that the app politely reminds the user of the correct syntax
+     * if they try to add a project but forget to type the project name.
+     */
+    @Test
+    void it_shows_usage_when_add_project_has_no_project_name() throws IOException {
+        execute("add project");
+
+        readLines(
+                "Please don't forget the correct usage: add project <project name>",
+                "Please set <project name> as one word only."
+        );
+
+        execute("quit");
+    }
+
+    /**
+     * Checks that the app displays the proper usage instructions if a user
+     * starts adding a task but leaves out the required project name or
+     * task description.
+     */
+    @Test
+    void it_shows_usage_when_add_task_is_incomplete() throws IOException {
+        execute("add task");
+
+        readLines(
+                "Please don't forget the correct usage: add task <project name> <task description>"
+        );
+
+        execute("add task training");
+
+        readLines(
+                "Please don't forget the correct usage: add task <project name> <task description>"
+        );
+
+        execute("quit");
+    }
+
+    /**
+     * Ensures the app handles unrecognized 'add' subcommands
+     * (like 'add random') by letting the user know it doesn't understand the input.
+     */
+    @Test
+    void it_shows_an_error_for_an_unknown_add_subcommand() throws IOException {
+        execute("add random");
+
+        readLines(
+                "I don't know how to add \"random\"."
+        );
+
+        execute("quit");
+    }
+
     private void execute(String command) throws IOException {
         read(PROMPT);
         write(command);

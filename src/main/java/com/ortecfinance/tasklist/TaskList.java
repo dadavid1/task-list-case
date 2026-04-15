@@ -95,6 +95,10 @@ public final class TaskList implements Runnable {
                 show();
                 break;
             case "add":
+                if (commandRest.length < 2 || commandRest[1].isBlank()) {
+                    printAddUsage();
+                    return;
+                }
                 add(commandRest[1]);
                 break;
             case "check":
@@ -150,18 +154,40 @@ public final class TaskList implements Runnable {
 
     /**
      * Parses an 'add' command and routes it to create either a project or a task.
+     * Validates the input to ensure all required arguments are provided.
+     * Prints specific correct usage instructions if the arguments are missing or incorrect.
      *
      * @param commandLine the remaining part of the command after 'add '
      */
     private void add(String commandLine) {
-        String[] subcommandRest = commandLine.split(" ", 2);
-        String subcommand = subcommandRest[0];
+        String[] parts = commandLine.split(" ", 3);
+        String subcommand = parts[0];
+
+        // Case of adding a project
         if (subcommand.equals("project")) {
-            addProject(subcommandRest[1]);
-        } else if (subcommand.equals("task")) {
-            String[] projectTask = subcommandRest[1].split(" ", 2);
-            addTask(projectTask[0], projectTask[1]);
+            if (parts.length != 2 || parts[1].isBlank()) {
+                out.println("Please don't forget the correct usage: add project <project name>");
+                out.println("Please set <project name> as one word only.");
+                return;
+            }
+
+            addProject(parts[1]);
+            return;
         }
+
+        // Case of adding a task
+        if (subcommand.equals("task")) {
+            if (parts.length < 3 || parts[1].isBlank() || parts[2].isBlank()) {
+                out.println("Please don't forget the correct usage: add task <project name> <task description>");
+                return;
+            }
+
+            addTask(parts[1], parts[2]);
+            return;
+        }
+
+        // Case of adding something unknown (not a project and not a task)
+        out.printf("I don't know how to add \"%s\".%n", subcommand);
     }
 
     /**
@@ -307,5 +333,14 @@ public final class TaskList implements Runnable {
     private void error(String command) {
         out.printf("I don't know what the command \"%s\" is.", command);
         out.println();
+    }
+
+    /**
+     * Prints a message with the usage details for the 'add' command.
+     */
+    private void printAddUsage() {
+        out.println("I don't understand that. Don't forget the correct usage of add:");
+        out.println("1st usage: add project <project name>");
+        out.println("2nd usage: add task <project name> <task description>");
     }
 }
