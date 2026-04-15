@@ -7,6 +7,9 @@ import java.io.*;
 import static java.lang.System.lineSeparator;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
+import java.time.Clock;
+import java.time.Instant;
+import java.time.ZoneId;
 
 public final class ApplicationTest {
     public static final String PROMPT = "> ";
@@ -21,7 +24,12 @@ public final class ApplicationTest {
     public ApplicationTest() throws IOException {
         BufferedReader in = new BufferedReader(new InputStreamReader(new PipedInputStream(inStream)));
         PrintWriter out = new PrintWriter(new PipedOutputStream(outStream), true);
-        TaskList taskList = new TaskList(in, out);
+        Clock fixedClock = Clock.fixed(
+                Instant.parse("2024-11-25T10:15:30Z"),
+                ZoneId.of("UTC")
+        );
+        TaskListService service = new TaskListService(fixedClock);
+        TaskList taskList = new TaskList(in, out, service);
         applicationThread = new Thread(taskList);
     }
 
@@ -409,6 +417,69 @@ public final class ApplicationTest {
 
         readLines(
                 "Could not find a task with an ID of 42."
+        );
+
+        execute("quit");
+    }
+
+    /**
+     * Verifies that the 'view-by-deadline' command prints tasks grouped
+     * chronologically by deadline and places tasks without a deadline
+     * in the final 'No deadline' group.
+     */
+    @Test
+    void it_shows_tasks_grouped_by_deadline() throws IOException {
+        execute("add project secrets");
+        execute("add task secrets Eat more donuts.");
+        execute("add task secrets Destroy all humans.");
+
+        execute("add project training");
+        execute("add task training SOLID");
+
+        execute("deadline 1 11-11-2024");
+        execute("deadline 3 13-11-2024");
+
+        execute("view-by-deadline");
+
+        readLines(
+                "11-11-2024:",
+                "    secrets:",
+                "        1: Eat more donuts.",
+                "13-11-2024:",
+                "    training:",
+                "        3: SOLID",
+                "No deadline:",
+                "    secrets:",
+                "        2: Destroy all humans."
+        );
+
+        execute("quit");
+    }
+
+    /**
+     * Verifies that the 'today' command prints only the tasks that have
+     * a deadline equal to the current date, while preserving the same
+     * checked/unchecked format used by the 'show' command.
+     */
+    @Test
+    void it_shows_only_tasks_due_today() throws IOException {
+        execute("add project secrets");
+        execute("add task secrets Eat more donuts.");
+        execute("add task secrets Destroy all humans.");
+
+        execute("add project training");
+        execute("add task training SOLID");
+
+        execute("deadline 1 25-11-2024");
+        execute("deadline 3 26-11-2024");
+        execute("check 1");
+
+        execute("today");
+
+        readLines(
+                "secrets",
+                "    [x] 1: Eat more donuts.",
+                ""
         );
 
         execute("quit");
