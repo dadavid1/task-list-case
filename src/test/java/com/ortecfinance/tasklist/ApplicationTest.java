@@ -165,6 +165,96 @@ public final class ApplicationTest {
     }
 
     /**
+     * Verifies that the app prompts the user with the correct usage instructions
+     * if they attempt to use the 'check' command without providing a target task ID.
+     */
+    @Test
+    void it_shows_usage_when_check_has_no_id() throws IOException {
+        execute("check");
+
+        readLines(
+                "Please don't forget the correct usage: check <task ID>"
+        );
+
+        execute("quit");
+    }
+
+    /**
+     * Ensures the app warns the user when they provide letters or symbols instead of a
+     * valid numeric task ID.
+     */
+    @Test
+    void it_shows_an_error_when_check_id_is_not_numeric() throws IOException {
+        execute("check abc");
+
+        readLines(
+                "Invalid task ID \"abc\". Please provide a numeric ID."
+        );
+
+        execute("quit");
+    }
+
+    /**
+     * Checks that the app rejects the command and shows the proper syntax if a user
+     * types additional, unexpected arguments after the task ID when checking it
+     */
+    @Test
+    void it_shows_usage_when_check_has_too_many_arguments() throws IOException {
+        execute("check 1 extra");
+
+        readLines(
+                "Please don't forget the correct usage: check <task ID>"
+        );
+
+        execute("quit");
+    }
+
+    /**
+     * Verifies that the app prompts the user with the correct usage instructions
+     * if they attempt to use the 'uncheck' command without providing a target task ID.
+     */
+    @Test
+    void it_shows_usage_when_uncheck_has_no_id() throws IOException {
+        execute("uncheck");
+
+        readLines(
+                "Please don't forget the correct usage: uncheck <task ID>"
+        );
+
+        execute("quit");
+    }
+
+    /**
+     * Ensures the app warns the user when they provide letters or symbols instead of a
+     * valid numeric task ID.
+     */
+    @Test
+    void it_shows_an_error_when_uncheck_id_is_not_numeric() throws IOException {
+        execute("uncheck abc");
+
+        readLines(
+                "Invalid task ID \"abc\". Please provide a numeric ID."
+        );
+
+        execute("quit");
+    }
+
+    /**
+     * Checks that the app rejects the command and shows the proper syntax if a user
+     * types additional, unexpected arguments after the task ID when unchecking it
+     */
+    @Test
+    void it_shows_usage_when_uncheck_has_too_many_arguments() throws IOException {
+        execute("uncheck 1 extra");
+
+        readLines(
+                "Please don't forget the correct usage: uncheck <task ID>"
+        );
+
+        execute("quit");
+    }
+
+    /**
      * Ensures that typing just 'add' without any additional arguments
      * prompts the user with the general usage guide for the add command.
      */

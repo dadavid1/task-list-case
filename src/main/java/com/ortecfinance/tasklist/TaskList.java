@@ -102,10 +102,10 @@ public final class TaskList implements Runnable {
                 add(commandRest[1]);
                 break;
             case "check":
-                check(commandRest[1]);
+                check(commandRest.length < 2 ? "" : commandRest[1]);
                 break;
             case "uncheck":
-                uncheck(commandRest[1]);
+                uncheck(commandRest.length < 2 ? "" : commandRest[1]);
                 break;
             case "help":
                 help();
@@ -217,29 +217,47 @@ public final class TaskList implements Runnable {
     /**
      * Marks a task as complete.
      *
-     * @param idString the ID of the task to check off
+     * @param commandLine the remaining part of the command containing the task ID
      */
-    private void check(String idString) {
-        setDone(idString, true);
+    private void check(String commandLine) {
+        setDone("check", commandLine, true);
     }
 
     /**
      * Marks a task as not complete.
      *
-     * @param idString the ID of the task to uncheck
+     * @param commandLine the remaining part of the command containing the task ID
      */
-    private void uncheck(String idString) {
-        setDone(idString, false);
+    private void uncheck(String commandLine) {
+        setDone("uncheck", commandLine, false);
     }
 
     /**
-     * Helper method to parse a task ID and update its completion status.
+     * Helper method to validate the input for check/uncheck commands and update the completion
+     * status of a task.
+     * Provides clear usage instructions if the input is missing, contains too many arguments,
+     * or is not a valid numeric ID.
      *
-     * @param idString the ID of the task as a string
+     * @param commandName the name of the command invoked (used for formatting usage messages)
+     * @param commandLine the raw input string expected to contain exactly one target task ID
      * @param done true to check, false to uncheck
      */
-    private void setDone(String idString, boolean done) {
-        long id = Long.parseLong(idString);
+    private void setDone(String commandName, String commandLine, boolean done) {
+        String[] parts = commandLine.trim().split("\\s+");
+
+        if (commandLine.isBlank() || parts.length != 1) {
+            out.printf("Please don't forget the correct usage: %s <task ID>%n", commandName);
+            return;
+        }
+
+        long id;
+        try {
+            id = Long.parseLong(parts[0]);
+        } catch (NumberFormatException e) {
+            out.printf("Invalid task ID \"%s\". Please provide a numeric ID.%n", parts[0]);
+            return;
+        }
+
         try {
             if (done) {
                 service.checkTask(id);
@@ -247,8 +265,7 @@ public final class TaskList implements Runnable {
                 service.uncheckTask(id);
             }
         } catch (TaskNotFoundException e) {
-            out.printf("Could not find a task with an ID of %d.", e.getTaskId());
-            out.println();
+            out.printf("Could not find a task with an ID of %d.%n", e.getTaskId());
         }
     }
 
