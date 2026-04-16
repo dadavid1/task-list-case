@@ -31,6 +31,7 @@ public class TaskListApplication {
         if (WEB_MODE.equalsIgnoreCase(args[0])) {
             SpringApplication.run(TaskListApplication.class, args);
             System.out.println("Web application started at http://localhost:8080/projects");
+            System.out.println("Swagger UI available at http://localhost:8080/swagger-ui.html");
             return;
         }
 

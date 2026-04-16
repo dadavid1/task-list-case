@@ -9,12 +9,16 @@ import com.ortecfinance.tasklist.dto.*;
 
 import java.util.List;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+
 /**
  * REST Controller that exposes the TaskList application over HTTP.
  * Maps incoming web requests to the core business logic in the TaskListService.
  */
 @RestController
 @RequestMapping("/projects")
+@Tag(name = "Projects", description = "Operations for managing projects, tasks, and deadlines")
 public final class ProjectController {
     private final TaskListService service;
 
@@ -40,6 +44,7 @@ public final class ProjectController {
      */
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
+    @Operation(summary = "Create a new project")
     public void createProject(@RequestBody CreateProjectRequest request) {
         service.addProject(request.name());
     }
@@ -51,6 +56,7 @@ public final class ProjectController {
      * @return a list of serialized project data
      */
     @GetMapping
+    @Operation(summary = "Get all projects with their tasks")
     public List<ProjectResponse> getProjects() {
         return service.getProjects().stream()
                 .map(project -> new ProjectResponse(
@@ -74,6 +80,7 @@ public final class ProjectController {
      */
     @PostMapping("/{projectName}/tasks")
     @ResponseStatus(HttpStatus.CREATED)
+    @Operation(summary = "Create a task inside a project")
     public void createTask(@PathVariable String projectName, @RequestBody CreateTaskRequest request) {
         service.addTask(projectName, request.description());
     }
@@ -86,6 +93,7 @@ public final class ProjectController {
      * @param deadline the new deadline in dd-MM-yyyy format
      */
     @PutMapping("/{projectName}/tasks/{taskId}")
+    @Operation(summary = "Update the deadline of a task")
     public void updateTaskDeadline(@PathVariable String projectName,
                                    @PathVariable long taskId,
                                    @RequestParam String deadline) {
@@ -101,6 +109,7 @@ public final class ProjectController {
      * @return tasks grouped by deadline and then by project
      */
     @GetMapping("/view_by_deadline")
+    @Operation(summary = "Get tasks grouped by deadline")
     public List<DeadlineGroupResponse> viewByDeadline() {
         return service.getTasksGroupedByDeadline().stream()
                 .map(group -> new DeadlineGroupResponse(
