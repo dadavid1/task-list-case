@@ -148,6 +148,44 @@ public final class TaskListServiceTest {
     }
 
     /**
+     * Verifies that a deadline can be assigned when the task belongs
+     * to the project specified by the caller.
+     */
+    @Test
+    void it_can_set_a_deadline_for_a_task_inside_a_specific_project() {
+        TaskListService service = new TaskListService();
+
+        service.addProject("training");
+        service.addTask("training", "SOLID");
+
+        service.setDeadline("training", 1, java.time.LocalDate.of(2024, 11, 25));
+
+        Task task = service.getProjects().getFirst().getTasks().getFirst();
+        assertEquals(java.time.LocalDate.of(2024, 11, 25), task.getDeadline());
+    }
+
+    /**
+     * Verifies that the service does not update a task if the task ID exists,
+     * but belongs to a different project than the one specified.
+     */
+    @Test
+    void it_throws_when_setting_deadline_for_task_outside_given_project() {
+        TaskListService service = new TaskListService();
+
+        service.addProject("secrets");
+        service.addTask("secrets", "Eat more donuts.");
+
+        service.addProject("training");
+        service.addTask("training", "SOLID");
+
+        TaskNotFoundException exception =
+                assertThrows(TaskNotFoundException.class,
+                        () -> service.setDeadline("training", 1, java.time.LocalDate.of(2024, 11, 25)));
+
+        assertEquals(1L, exception.getTaskId());
+    }
+
+    /**
      * Verifies the logic for filtering tasks that are specifically due today.
      * By injecting a fixed Clock, this test ensures the time-based filtering
      * is completely deterministic and will always pass regardless of the actual

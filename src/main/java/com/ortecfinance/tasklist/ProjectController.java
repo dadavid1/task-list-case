@@ -2,6 +2,8 @@ package com.ortecfinance.tasklist;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
+
+import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import com.ortecfinance.tasklist.dto.*;
 
@@ -74,5 +76,20 @@ public final class ProjectController {
     @ResponseStatus(HttpStatus.CREATED)
     public void createTask(@PathVariable String projectName, @RequestBody CreateTaskRequest request) {
         service.addTask(projectName, request.description());
+    }
+
+    /**
+     * Updates the deadline of a task inside a specific project.
+     *
+     * @param projectName the project that should contain the task
+     * @param taskId the ID of the task to update
+     * @param deadline the new deadline in dd-MM-yyyy format
+     */
+    @PutMapping("/{projectName}/tasks/{taskId}")
+    public void updateTaskDeadline(@PathVariable String projectName,
+                                   @PathVariable long taskId,
+                                   @RequestParam String deadline) {
+        LocalDate parsedDeadline = LocalDate.parse(deadline, DATE_FORMATTER);
+        service.setDeadline(projectName, taskId, parsedDeadline);
     }
 }

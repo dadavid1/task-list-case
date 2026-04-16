@@ -102,6 +102,30 @@ public final class TaskListService {
     }
 
     /**
+     * Sets a deadline for a task that must belong to the given project.
+     * It is needed for REST calls where the project is part of the URL.
+     *
+     * @param projectName the project that should contain the task
+     * @param taskId the task to update
+     * @param deadline the new deadline
+     */
+    public void setDeadline(String projectName, long taskId, LocalDate deadline) {
+        Project project = projects.get(projectName);
+        if (project == null) {
+            throw new ProjectNotFoundException(projectName);
+        }
+
+        for (Task task : project.getTasks()) {
+            if (task.getId() == taskId) {
+                task.setDeadline(deadline);
+                return;
+            }
+        }
+
+        throw new TaskNotFoundException(taskId);
+    }
+
+    /**
      * Retrieves a list of projects containing only the tasks that are due today.
      * Empty projects are filtered out.
      *

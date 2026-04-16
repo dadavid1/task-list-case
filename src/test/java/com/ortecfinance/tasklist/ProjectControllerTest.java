@@ -18,6 +18,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 
 /**
  * Integration tests for the ProjectController.
@@ -153,5 +154,80 @@ public class ProjectControllerTest {
                         .content(objectMapper.writeValueAsString(new CreateTaskRequest("SOLID"))))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.message").value("Could not find a project with the name \"missing\"."));
+    }
+
+    /**
+     * Verifies that PUT /projects/{projectName}/tasks/{taskId}?deadline=...
+     * updates the deadline of an existing task successfully.
+     */
+    @Test
+    void it_updates_the_deadline_of_a_task() throws Exception {
+        mockMvc.perform(post("/projects")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(new CreateProjectRequest("training"))))
+                .andExpect(status().isCreated());
+
+        mockMvc.perform(post("/projects/{projectName}/tasks", "training")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(new CreateTaskRequest("SOLID"))))
+                .andExpect(status().isCreated());
+
+        mockMvc.perform(put("/projects/{projectName}/tasks/{taskId}", "training", 1)
+                        .param("deadline", "25-11-2024"))
+                .andExpect(status().isOk());
+
+        mockMvc.perform(get("/projects"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].tasks[0].deadline").value("25-11-2024"));
+    }
+
+    /**
+     * Verifies that updating a deadline for a task inside a project that does not exist
+     * returns a 404 response.
+     */
+    @Test
+    void it_returns_not_found_when_updating_a_deadline_for_a_missing_project() throws Exception {
+        mockMvc.perform(put("/projects/{projectName}/tasks/{taskId}", "missing", 1)
+                        .param("deadline", "25-11-2024"))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.message").value("Could not find a project with the name \"missing\"."));
+    }
+
+    /**
+     * Verifies that updating a deadline for a task that does not exist
+     * inside the requested project returns a 404 response.
+     */
+    @Test
+    void it_returns_not_found_when_updating_a_missing_task() throws Exception {
+        mockMvc.perform(post("/projects")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(new CreateProjectRequest("training"))))
+                .andExpect(status().isCreated());
+
+        mockMvc.perform(put("/projects/{projectName}/tasks/{taskId}", "training", 99)
+                        .param("deadline", "25-11-2024"))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.message").value("Could not find a task with an ID of 99."));
+    }
+
+    /**
+     * Verifies that using the wrong date format returns 400 Bad Request.
+     */
+    @Test
+    void it_returns_bad_request_for_an_invalid_deadline_format() throws Exception {
+        mockMvc.perform(post("/projects")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(new CreateProjectRequest("training"))))
+                .andExpect(status().isCreated());
+
+        mockMvc.perform(post("/projects/{projectName}/tasks", "training")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(new CreateTaskRequest("SOLID"))))
+                .andExpect(status().isCreated());
+
+        mockMvc.perform(put("/projects/{projectName}/tasks/{taskId}", "training", 1)
+                        .param("deadline", "2024-11-25"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("Invalid date. Please use format dd-MM-yyyy."));
     }
 }
