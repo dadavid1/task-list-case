@@ -2,7 +2,10 @@ package com.ortecfinance.tasklist;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
+import java.time.format.DateTimeFormatter;
 import com.ortecfinance.tasklist.dto.*;
+
+import java.util.List;
 
 /**
  * REST Controller that exposes the TaskList application over HTTP.
@@ -12,6 +15,11 @@ import com.ortecfinance.tasklist.dto.*;
 @RequestMapping("/projects")
 public final class ProjectController {
     private final TaskListService service;
+
+    /**
+     * The standard date formatter used to parse deadlines via the API.
+     */
+    private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("dd-MM-yyyy");
 
     /**
      * Constructs the controller with the necessary business service.
@@ -32,5 +40,28 @@ public final class ProjectController {
     @ResponseStatus(HttpStatus.CREATED)
     public void createProject(@RequestBody CreateProjectRequest request) {
         service.addProject(request.name());
+    }
+
+    /**
+     * Retrieves a complete list of all projects and their associated tasks.
+     * Converts internal domain objects (Project, Task) into safe API response objects (DTOs).
+     *
+     * @return a list of serialized project data
+     */
+    @GetMapping
+    public List<ProjectResponse> getProjects() {
+        return service.getProjects().stream()
+                .map(project -> new ProjectResponse(
+                        project.getName(),
+                        project.getTasks().stream()
+                                .map(task -> new TaskResponse(
+                                        task.getId(),
+                                        task.getDescription(),
+                                        task.isDone(),
+                                        task.getDeadline() == null ? null : task.getDeadline().format(DATE_FORMATTER)
+                                ))
+                                .toList()
+                ))
+                .toList();
     }
 }
