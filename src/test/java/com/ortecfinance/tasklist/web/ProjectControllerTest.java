@@ -1,4 +1,4 @@
-package com.ortecfinance.tasklist;
+package com.ortecfinance.tasklist.web;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ortecfinance.tasklist.service.TaskListService;

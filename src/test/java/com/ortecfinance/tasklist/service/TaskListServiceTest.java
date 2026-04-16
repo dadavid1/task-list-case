@@ -1,11 +1,10 @@
-package com.ortecfinance.tasklist;
+package com.ortecfinance.tasklist.service;
 
 import com.ortecfinance.tasklist.exception.ProjectNotFoundException;
 import com.ortecfinance.tasklist.exception.TaskNotFoundException;
 import com.ortecfinance.tasklist.model.DeadlineGroup;
 import com.ortecfinance.tasklist.model.Project;
 import com.ortecfinance.tasklist.model.Task;
-import com.ortecfinance.tasklist.service.TaskListService;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
