@@ -64,4 +64,15 @@ public final class ProjectController {
                 ))
                 .toList();
     }
+    /**
+     * Creates a new task inside a specific existing project.
+     *
+     * @param projectName the name of the project to add the task to
+     * @param request a payload containing the task description
+     */
+    @PostMapping("/{projectName}/tasks")
+    @ResponseStatus(HttpStatus.CREATED)
+    public void createTask(@PathVariable String projectName, @RequestBody CreateTaskRequest request) {
+        service.addTask(projectName, request.description());
+    }
 }

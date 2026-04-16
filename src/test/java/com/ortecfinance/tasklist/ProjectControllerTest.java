@@ -116,4 +116,29 @@ public class ProjectControllerTest {
                 .andExpect(jsonPath("$[1].tasks[0].done").value(false))
                 .andExpect(jsonPath("$[1].tasks[0].deadline").value("25-11-2024"));
     }
+
+    /**
+     * Verifies that POST /projects/{projectName}/tasks creates a task inside an existing project.
+     */
+    @Test
+    void it_creates_a_task_for_a_project() throws Exception {
+        mockMvc.perform(post("/projects")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(new CreateProjectRequest("training"))))
+                .andExpect(status().isCreated());
+
+        mockMvc.perform(post("/projects/{projectName}/tasks", "training")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(new CreateTaskRequest("SOLID"))))
+                .andExpect(status().isCreated());
+
+        mockMvc.perform(get("/projects"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].name").value("training"))
+                .andExpect(jsonPath("$[0].tasks.length()").value(1))
+                .andExpect(jsonPath("$[0].tasks[0].id").value(1))
+                .andExpect(jsonPath("$[0].tasks[0].description").value("SOLID"))
+                .andExpect(jsonPath("$[0].tasks[0].done").value(false))
+                .andExpect(jsonPath("$[0].tasks[0].deadline").value(nullValue()));
+    }
 }
