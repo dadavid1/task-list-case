@@ -141,4 +141,17 @@ public class ProjectControllerTest {
                 .andExpect(jsonPath("$[0].tasks[0].done").value(false))
                 .andExpect(jsonPath("$[0].tasks[0].deadline").value(nullValue()));
     }
+
+    /**
+     * Verifies that creating a task for a missing project returns a clear 404 response
+     * instead of exposing an internal server error.
+     */
+    @Test
+    void it_returns_not_found_when_creating_a_task_for_a_missing_project() throws Exception {
+        mockMvc.perform(post("/projects/{projectName}/tasks", "missing")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(new CreateTaskRequest("SOLID"))))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.message").value("Could not find a project with the name \"missing\"."));
+    }
 }
