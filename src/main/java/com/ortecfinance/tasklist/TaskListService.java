@@ -5,10 +5,12 @@ import java.util.List;
 import java.util.Map;
 import java.time.Clock;
 import java.time.LocalDate;
+import org.springframework.stereotype.Service;
 
 /**
  * The core service that manages all projects and tasks.
  */
+@Service
 public final class TaskListService {
     private final Map<String, Project> projects = new LinkedHashMap<>();
     private final Clock clock;
