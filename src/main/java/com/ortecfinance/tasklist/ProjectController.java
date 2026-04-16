@@ -92,4 +92,37 @@ public final class ProjectController {
         LocalDate parsedDeadline = LocalDate.parse(deadline, DATE_FORMATTER);
         service.setDeadline(projectName, taskId, parsedDeadline);
     }
+
+    /**
+     * Returns all tasks grouped by deadline and then by project.
+     * Tasks are grouped chronologically, while tasks without a deadline
+     * are placed in a final "No deadline" group represented by a null deadline.
+     *
+     * @return tasks grouped by deadline and then by project
+     */
+    @GetMapping("/view_by_deadline")
+    public List<DeadlineGroupResponse> viewByDeadline() {
+        return service.getTasksGroupedByDeadline().stream()
+                .map(group -> new DeadlineGroupResponse(
+                        group.getDeadline() == null
+                                ? null
+                                : group.getDeadline().format(DATE_FORMATTER),
+                        group.getProjects().stream()
+                                .map(project -> new ProjectResponse(
+                                        project.getName(),
+                                        project.getTasks().stream()
+                                                .map(task -> new TaskResponse(
+                                                        task.getId(),
+                                                        task.getDescription(),
+                                                        task.isDone(),
+                                                        task.getDeadline() == null
+                                                                ? null
+                                                                : task.getDeadline().format(DATE_FORMATTER)
+                                                ))
+                                                .toList()
+                                ))
+                                .toList()
+                ))
+                .toList();
+    }
 }

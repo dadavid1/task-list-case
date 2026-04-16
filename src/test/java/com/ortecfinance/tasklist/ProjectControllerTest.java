@@ -230,4 +230,79 @@ public class ProjectControllerTest {
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.message").value("Invalid date. Please use format dd-MM-yyyy."));
     }
+
+    /**
+     * Verifies that GET /projects/view_by_deadline returns tasks grouped
+     * chronologically by deadline, with the no-deadline group placed last.
+     */
+    @Test
+    void it_returns_tasks_grouped_by_deadline() throws Exception {
+        service.addProject("secrets");
+        service.addTask("secrets", "Eat more donuts.");
+        service.addTask("secrets", "Destroy all humans.");
+
+        service.addProject("training");
+        service.addTask("training", "SOLID");
+
+        service.setDeadline("secrets", 1, LocalDate.of(2024, 11, 11));
+        service.setDeadline("training", 3, LocalDate.of(2024, 11, 13));
+
+        mockMvc.perform(get("/projects/view_by_deadline"))
+                .andExpect(status().isOk())
+
+                .andExpect(jsonPath("$[0].deadline").value("11-11-2024"))
+                .andExpect(jsonPath("$[0].projects[0].name").value("secrets"))
+                .andExpect(jsonPath("$[0].projects[0].tasks[0].id").value(1))
+                .andExpect(jsonPath("$[0].projects[0].tasks[0].description").value("Eat more donuts."))
+
+                .andExpect(jsonPath("$[1].deadline").value("13-11-2024"))
+                .andExpect(jsonPath("$[1].projects[0].name").value("training"))
+                .andExpect(jsonPath("$[1].projects[0].tasks[0].id").value(3))
+                .andExpect(jsonPath("$[1].projects[0].tasks[0].description").value("SOLID"))
+
+                .andExpect(jsonPath("$[2].deadline").value(nullValue()))
+                .andExpect(jsonPath("$[2].projects[0].name").value("secrets"))
+                .andExpect(jsonPath("$[2].projects[0].tasks[0].id").value(2))
+                .andExpect(jsonPath("$[2].projects[0].tasks[0].description").value("Destroy all humans."));
+    }
+
+    /**
+     * Verifies that tasks with the same deadline remain grouped by their projects.
+     */
+    @Test
+    void it_groups_tasks_by_project_inside_the_same_deadline() throws Exception {
+        service.addProject("secrets");
+        service.addTask("secrets", "Eat more donuts.");
+
+        service.addProject("training");
+        service.addTask("training", "SOLID");
+
+        service.setDeadline("secrets", 1, LocalDate.of(2024, 11, 25));
+        service.setDeadline("training", 2, LocalDate.of(2024, 11, 25));
+
+        mockMvc.perform(get("/projects/view_by_deadline"))
+                .andExpect(status().isOk())
+
+                .andExpect(jsonPath("$[0].deadline").value("25-11-2024"))
+                .andExpect(jsonPath("$[0].projects.length()").value(2))
+
+                .andExpect(jsonPath("$[0].projects[0].name").value("secrets"))
+                .andExpect(jsonPath("$[0].projects[0].tasks[0].id").value(1))
+                .andExpect(jsonPath("$[0].projects[0].tasks[0].description").value("Eat more donuts."))
+
+                .andExpect(jsonPath("$[0].projects[1].name").value("training"))
+                .andExpect(jsonPath("$[0].projects[1].tasks[0].id").value(2))
+                .andExpect(jsonPath("$[0].projects[1].tasks[0].description").value("SOLID"));
+    }
+
+    /**
+     * Verifies that the deadline view returns an empty list when there are no tasks.
+     */
+    @Test
+    void it_returns_an_empty_deadline_view_when_there_are_no_tasks() throws Exception {
+        mockMvc.perform(get("/projects/view_by_deadline"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$").isArray())
+                .andExpect(jsonPath("$.length()").value(0));
+    }
 }
