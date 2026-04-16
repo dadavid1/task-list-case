@@ -1,4 +1,4 @@
-package com.ortecfinance.tasklist;
+package com.ortecfinance.tasklist.web.dto;
 
 /**
  * DTO (Data Transfer Object) for representing API error responses.

@@ -1,4 +1,4 @@
-package com.ortecfinance.tasklist.dto;
+package com.ortecfinance.tasklist.web.dto;
 
 /**
  * DTO for incoming requests to add a new task to an existing project.

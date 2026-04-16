@@ -1,5 +1,7 @@
 package com.ortecfinance.tasklist;
 
+import com.ortecfinance.tasklist.cli.TaskList;
+import com.ortecfinance.tasklist.service.TaskListService;
 import org.junit.jupiter.api.*;
 
 import java.io.*;

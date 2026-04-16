@@ -1,4 +1,11 @@
-package com.ortecfinance.tasklist;
+package com.ortecfinance.tasklist.cli;
+
+import com.ortecfinance.tasklist.exception.ProjectNotFoundException;
+import com.ortecfinance.tasklist.exception.TaskNotFoundException;
+import com.ortecfinance.tasklist.model.DeadlineGroup;
+import com.ortecfinance.tasklist.model.Project;
+import com.ortecfinance.tasklist.model.Task;
+import com.ortecfinance.tasklist.service.TaskListService;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -53,7 +60,7 @@ public final class TaskList implements Runnable {
      * @param writer  the output stream to print results to
      * @param service the core business logic engine
      */
-    TaskList(BufferedReader reader, PrintWriter writer, TaskListService service) {
+    public TaskList(BufferedReader reader, PrintWriter writer, TaskListService service) {
         this.in = reader;
         this.out = writer;
         this.service = service;

@@ -1,4 +1,4 @@
-package com.ortecfinance.tasklist.dto;
+package com.ortecfinance.tasklist.web.dto;
 
 /**
  * DTO representing a single task sent in an API response.

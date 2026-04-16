@@ -1,4 +1,4 @@
-package com.ortecfinance.tasklist.dto;
+package com.ortecfinance.tasklist.web.dto;
 
 import java.util.List;
 

@@ -1,5 +1,6 @@
 package com.ortecfinance.tasklist;
 
+import com.ortecfinance.tasklist.cli.TaskList;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 

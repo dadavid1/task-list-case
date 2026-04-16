@@ -1,6 +1,9 @@
 package com.ortecfinance.tasklist;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.ortecfinance.tasklist.service.TaskListService;
+import com.ortecfinance.tasklist.web.dto.CreateProjectRequest;
+import com.ortecfinance.tasklist.web.dto.CreateTaskRequest;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -8,7 +11,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.web.servlet.MockMvc;
-import com.ortecfinance.tasklist.dto.*;
 
 import java.time.LocalDate;
 

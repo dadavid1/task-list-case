@@ -1,4 +1,4 @@
-package com.ortecfinance.tasklist;
+package com.ortecfinance.tasklist.exception;
 
 /**
  * Exception thrown when a requested task ID does not exst.

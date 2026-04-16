@@ -1,11 +1,12 @@
-package com.ortecfinance.tasklist;
+package com.ortecfinance.tasklist.web;
 
+import com.ortecfinance.tasklist.service.TaskListService;
+import com.ortecfinance.tasklist.web.dto.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import com.ortecfinance.tasklist.dto.*;
 
 import java.util.List;
 

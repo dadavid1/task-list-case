@@ -1,5 +1,8 @@
-package com.ortecfinance.tasklist;
+package com.ortecfinance.tasklist.web;
 
+import com.ortecfinance.tasklist.exception.ProjectNotFoundException;
+import com.ortecfinance.tasklist.exception.TaskNotFoundException;
+import com.ortecfinance.tasklist.web.dto.ErrorResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 

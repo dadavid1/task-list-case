@@ -1,10 +1,16 @@
-package com.ortecfinance.tasklist;
+package com.ortecfinance.tasklist.service;
 
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.time.Clock;
 import java.time.LocalDate;
+
+import com.ortecfinance.tasklist.model.DeadlineGroup;
+import com.ortecfinance.tasklist.model.Project;
+import com.ortecfinance.tasklist.model.Task;
+import com.ortecfinance.tasklist.exception.ProjectNotFoundException;
+import com.ortecfinance.tasklist.exception.TaskNotFoundException;
 import org.springframework.stereotype.Service;
 
 /**

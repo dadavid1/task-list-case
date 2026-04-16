@@ -1,4 +1,4 @@
-package com.ortecfinance.tasklist.dto;
+package com.ortecfinance.tasklist.web.dto;
 
 /**
  * DTO (Data Transfer Object) for incoming requests to create a new project.
